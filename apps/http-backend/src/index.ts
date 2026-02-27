@@ -1,7 +1,8 @@
 import express from "express";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { prisma } from "@repo/db/client";
+import { CreateRoomSchema, CreateUserSchema, SigninSchema } from "@repo/common/types";
 const app = express();
 
 app.post("/signup", async (req, res) => {
