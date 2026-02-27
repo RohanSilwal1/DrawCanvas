@@ -1,23 +1,24 @@
 import express from "express";
 import jwt from "jsonwebtoken"
-const app=express();
+import { z } from "zod";
+import { prisma } from "@repo/db/client";
+const app = express();
 
-app.post("/signup",(req,res)=>{
-
+app.post("/signup", async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
 })
 
-app.post("/signin",(req,res)=>{
+app.post("/signin", (req, res) => {
 
 
-    const token=jwt
+    const token = jwt
 })
 
-app.post("/create-room",(req,res)=>{
+app.post("/create-room", (req, res) => {
 
-    
+
 })
 
 app.listen(3005);
