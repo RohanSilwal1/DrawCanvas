@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { prisma } from "@repo/db/client";
 import { CreateRoomSchema, CreateUserSchema, SigninSchema } from "@repo/common/types";
+import dotenv from "dotenv"
 const app = express();
 app.use(express.json());
 
@@ -14,10 +15,6 @@ app.post("/signup", async (req, res) => {
         })
     }
     try {
-        console.log(parsedData.data.email);
-        console.log(parsedData.data.password);
-        console.log(parsedData.data.name);
-
         const user = await prisma.user.create({
             data: {
                 email: parsedData.data.email,
@@ -37,8 +34,32 @@ app.post("/signup", async (req, res) => {
 
 })
 
-app.post("/signin", (req, res) => {
-
+app.post("/signin", async (req, res) => {
+    dotenv.config();
+    const JWT_SECRET = process.env.JWT_SECRET as string;
+    const dataParsed = SigninSchema.safeParse(req.body);
+    if (!dataParsed.success) {
+        return res.status(411).json({
+            mesage: "Incorrect Input"
+        })
+    }
+    const user = await prisma.user.findFirst({
+        where: {
+            email: dataParsed.data.email,
+            password: dataParsed.data.password,
+        }
+    })
+    if (!user) {
+        return res.status(411).json({
+            message: "user is not found"
+        })
+    }
+    const token = jwt.sign({
+        userId: user.id
+    }, JWT_SECRET)
+    res.json({
+        token
+    })
 })
 
 app.post("/create-room", (req, res) => {
