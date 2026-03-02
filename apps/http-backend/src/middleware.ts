@@ -20,7 +20,7 @@ export const middleware = (req: Request, res: Response, next: NextFunction) => {
             message: "JWT_SECRET is not defined"
         })
     }
-    const token = req.headers.Authorization as string;
+    const token = req.headers.authorization;
     if (!token) {
         return res.status(411).json({
             message: "Token missing from Authorization header"
