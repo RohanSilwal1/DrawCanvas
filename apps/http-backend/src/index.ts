@@ -38,6 +38,11 @@ app.post("/signup", async (req, res) => {
 app.post("/signin", async (req, res) => {
     dotenv.config();
     const JWT_SECRET = process.env.JWT_SECRET as string;
+    if(!JWT_SECRET){
+        return res.status(411).json({
+            mesage:"jwt is not defined"
+        })
+    }
     const dataParsed = SigninSchema.safeParse(req.body);
     if (!dataParsed.success) {
         return res.status(411).json({
@@ -76,15 +81,20 @@ app.post("/create-room", middleware, async (req, res) => {
         throw new Error("User not authenticated");
     }
 
-    await prisma.room.create({
-        data: {
-            slug: parsedData.data.message,
-            adminId: userId
-        }
-    })
-    res.status(200).json({
-        roomId:1234
-    })
+    try {
+        const room = await prisma.room.create({
+            data: {
+                slug: parsedData.data.message,
+                adminId: userId
+            }
+        })
+        res.status(200).json({
+            roomId: room.id
+        })
+    } catch (error) {
+        res.status(411).json({
+            message: "room already exist with this name"
+        })
+    }
 })
-
 app.listen(3005);
