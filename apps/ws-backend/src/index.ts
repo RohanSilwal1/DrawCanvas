@@ -1,11 +1,19 @@
-import { WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv"
 const wss = new WebSocketServer({ port: 8080 })
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-function checkUser(token: string): string |null {
+interface user {
+    userId: string,
+    ws: WebSocket,
+    rooms: string[]
+}
+
+const users: user[] = []
+
+function checkUser(token: string): string | null {
     const decoded = jwt.verify(token, JWT_SECRET)
 
     if (typeof decoded == "string") {
@@ -18,17 +26,52 @@ function checkUser(token: string): string |null {
 }
 
 wss.on('connection', function connection(ws, request) {
+    console.log("connected");
     const url = request.url;
     if (!url) {
         return;
     }
     const queryParams = new URLSearchParams(url.split('?')[1]);
     const token = queryParams.get('token') || "";
-    const userAuthenticated=checkUser(token)
-    if(!userAuthenticated){
+    const userId = checkUser(token)
+
+    if (userId === null) {
         ws.close();
+        return null
     }
+    users.push({
+        userId,
+        rooms: [],
+        ws
+    })
+
     ws.on("message", function message(data) {
-        ws.send("pong");
+        const parsedData = JSON.parse(data as unknown as string)
+
+        if (parsedData.type === "join_room") {
+            const user = users.find(x => x.ws === ws)
+            user?.rooms.push(parsedData.roomId)
+        }
+        if (parsedData.type === "leave_room") {
+            const user = users.find(x => x.ws === ws)
+            if (!user) return;
+
+            user?.rooms.filter(x => x === parsedData.room);
+        }
+        if (parsedData.type === "chat") {
+            const roomId = parsedData.roomId;
+            const message = parsedData.message;
+
+
+            users.forEach(user => {
+                if (user.rooms.includes(roomId)) {
+                    user.ws.send(JSON.stringify({
+                        type: "chat",
+                        message: message,
+                        roomId
+                    }))
+                }
+            })
+        }
     })
 })
