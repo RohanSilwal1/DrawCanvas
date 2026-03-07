@@ -88,6 +88,9 @@ importers:
 
   apps/ws-backend:
     dependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1

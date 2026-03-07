@@ -1,6 +1,7 @@
 import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv"
+import { prisma } from "@repo/db/client";
 const wss = new WebSocketServer({ port: 8080 })
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -50,7 +51,7 @@ wss.on('connection', function connection(ws, request) {
         ws
     })
 
-    ws.on("message", function message(data) {
+    ws.on("message", async function message(data) {
         const parsedData = JSON.parse(data as unknown as string)
 
         if (parsedData.type === "join_room") {
@@ -67,7 +68,13 @@ wss.on('connection', function connection(ws, request) {
             const roomId = parsedData.roomId;
             const message = parsedData.message;
 
-
+            await prisma.chat.create({
+                data: {
+                    userId,
+                    roomId,
+                    message
+                }
+            })
             users.forEach(user => {
                 if (user.rooms.includes(roomId)) {
                     user.ws.send(JSON.stringify({
