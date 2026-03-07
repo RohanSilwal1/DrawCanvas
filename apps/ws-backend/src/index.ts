@@ -14,15 +14,20 @@ interface user {
 const users: user[] = []
 
 function checkUser(token: string): string | null {
-    const decoded = jwt.verify(token, JWT_SECRET)
+    try {
 
-    if (typeof decoded == "string") {
+        const decoded = jwt.verify(token, JWT_SECRET)
+
+        if (typeof decoded == "string") {
+            return null
+        }
+        if (!decoded || !decoded.userId) {
+            return null
+        }
+        return decoded.userId;
+    } catch (e) {
         return null
     }
-    if (!decoded || !decoded.userId) {
-        return null
-    }
-    return decoded.userId;
 }
 
 wss.on('connection', function connection(ws, request) {
