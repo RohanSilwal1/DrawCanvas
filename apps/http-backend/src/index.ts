@@ -105,6 +105,11 @@ app.get("/chats/:roomId", async (req, res) => {
         where: {
             roomId: roomId
         },
+        select:{
+            message:true,
+            roomId:true,
+            id:true
+        },
         take: 10,
         orderBy: {
             id: "desc"
