@@ -105,10 +105,10 @@ app.get("/chats/:roomId", async (req, res) => {
         where: {
             roomId: roomId
         },
-        select:{
-            message:true,
-            roomId:true,
-            id:true
+        select: {
+            message: true,
+            roomId: true,
+            id: true
         },
         take: 10,
         orderBy: {
@@ -119,4 +119,17 @@ app.get("/chats/:roomId", async (req, res) => {
         message: response
     })
 })
-app.listen(3005);
+
+
+app.get("/room/:slug", async (req, res) => {
+    const slug = req.params.slug;
+    const room = await prisma.room.findFirst({
+        where: {
+            slug
+        }
+    })
+    res.json({
+        room
+    })
+})
+app.listen(3001);
